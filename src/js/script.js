@@ -23,24 +23,7 @@ function clearMarkers() {
   markers = [];
 }
 
-// 🌊 Flood stations
-document.getElementById("floodBtn").addEventListener("click", () => {
-  clearMarkers();
 
-  fetch("https://environment.data.gov.uk/flood-monitoring/id/stations?parameter=level&_limit=200")
-    .then(res => res.json())
-    .then(data => {
-      data.items.forEach(station => {
-        if (station.lat && station.long) {
-          let marker = L.marker([station.lat, station.long])
-            .bindPopup(`🌊 ${station.label}`)
-            .addTo(map);
-
-          markers.push(marker);
-        }
-      });
-    });
-});
 
 // 🌿 Quiet spots (parks, cafes, libraries)
 document.getElementById("quietBtn").addEventListener("click", () => {
