@@ -1,4 +1,4 @@
- let map = L.map('map').setView([40.7128, -74.0060], 13);
+ let map = L.map('#map').setView([40.7128, -74.0060], 13);
 let markers = [];
 
 // Base map
@@ -27,7 +27,7 @@ function clearMarkers() {
 
 // 🌿 Quiet spots (parks, cafes, libraries)
 
-document.getElementById("quietBtn").addEventListener("click", () => {
+document.getElementById("#quietBtn").addEventListener("click", () => {
   clearMarkers();
 
   let center = map.getCenter();
