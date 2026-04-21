@@ -1,54 +1,81 @@
- let map;
+ let map = L.map('map').setView([40.7128, -74.0060], 13);
+let markers = [];
 
-    function initMap(location) {
-      map = new google.maps.Map(document.getElementById("map"), {
-        center: location,
-        zoom: 14,
+// Base map
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: '© OpenStreetMap'
+}).addTo(map);
+
+// Get user location
+navigator.geolocation.getCurrentPosition(position => {
+  const userLoc = [position.coords.latitude, position.coords.longitude];
+  map.setView(userLoc, 13);
+
+  L.marker(userLoc)
+    .addTo(map)
+    .bindPopup("📍 You are here")
+    .openPopup();
+});
+
+// Clear markers
+function clearMarkers() {
+  markers.forEach(m => map.removeLayer(m));
+  markers = [];
+}
+
+// 🌊 Flood stations
+document.getElementById("floodBtn").addEventListener("click", () => {
+  clearMarkers();
+
+  fetch("https://environment.data.gov.uk/flood-monitoring/id/stations?parameter=level&_limit=200")
+    .then(res => res.json())
+    .then(data => {
+      data.items.forEach(station => {
+        if (station.lat && station.long) {
+          let marker = L.marker([station.lat, station.long])
+            .bindPopup(`🌊 ${station.label}`)
+            .addTo(map);
+
+          markers.push(marker);
+        }
       });
+    });
+});
 
-      findQuietSpots(location);
-    }
+// 🌿 Quiet spots (parks, cafes, libraries)
+document.getElementById("quietBtn").addEventListener("click", () => {
+  clearMarkers();
 
-    function findQuietSpots(location) {
-      const service = new google.maps.places.PlacesService(map);
+  let center = map.getCenter();
 
-      const types = ["park", "library", "cafe"];
+  let query = `
+    [out:json];
+    (
+      node["leisure"="park"](around:1500,${center.lat},${center.lng});
+      node["amenity"="library"](around:1500,${center.lat},${center.lng});
+      node["amenity"="cafe"](around:1500,${center.lat},${center.lng});
+    );
+    out;
+  `;
 
-      types.forEach(type => {
-        const request = {
-          location: location,
-          radius: 1500,
-          type: type
-        };
+  fetch("https://overpass-api.de/api/interpreter", {
+    method: "POST",
+    body: query
+  })
+  .then(res => res.json())
+  .then(data => {
+    data.elements.forEach(place => {
+      let marker = L.marker([place.lat, place.lon])
+        .bindPopup(`🌿 Quiet Spot`)
+        .addTo(map);
 
-        service.nearbySearch(request, (results, status) => {
-          if (status === google.maps.places.PlacesServiceStatus.OK) {
-            results.forEach(place => {
-              new google.maps.Marker({
-                map: map,
-                position: place.geometry.location,
-                title: place.name
-              });
-            });
-          }
-        });
-      });
-    }
+      markers.push(marker);
+    });
+  });
+});
 
-    function getLocation() {
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(position => {
-          const userLocation = {
-            lat: position.coords.latitude,
-            lng: position.coords.longitude
-          };
-          initMap(userLocation);
-        }, () => {
-          initMap({ lat: 40.7128, lng: -74.0060 }); // fallback NYC
-        });
-      } else {
-        initMap({ lat: 40.7128, lng: -74.0060 });
-      }
-    }
-
-    window.onload = getLocation;
+// Click to drop marker
+map.on('click', function(e) {
+  let marker = L.marker(e.latlng).addTo(map);
+  markers.push(marker);
+});
