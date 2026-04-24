@@ -9,6 +9,7 @@ background-size: cover;
 color: #ffffff;
  margin: 0;
 
+
 }
 .image{
  display: flex;
@@ -25,8 +26,8 @@ font-family: "Atkinson Hyperlegible", sans-serif;
 .container{
 background-image: linear-gradient(#0502ac, #001861);
 border-radius: 25px;
-align-items: center;
- padding: 10px;
+
+padding: 10px;
  width: 600px;
  margin: 0 auto;
  overflow-y: auto;
@@ -95,6 +96,7 @@ align-items: center;
 
 
 
+
 #playPauseBtn {
  background-color: #b698fb;
  border-radius: 5px;
@@ -124,6 +126,9 @@ align-items: center;
  padding: 10px;
  align-items: center;
 }
+
+
+
 
 
 
