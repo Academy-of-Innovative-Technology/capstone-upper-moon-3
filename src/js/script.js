@@ -1,5 +1,21 @@
-let map = L.map('.map').setView([43.0, -75.0], 7); // NY centered
+mapboxgl.accessToken = "YOUR_MAPBOX_ACCESS_TOKEN";
+
+
+let map = new mapboxgl.Map({
+  container: 'map', // must match an ID
+  style: 'mapbox://styles/mapbox/streets-v11',
+  center: [-75.0, 43.0], // [lng, lat]
+  zoom: 7
+});
+
+
+
+
 let markers = [];
+function clearMarkers() {
+  markers.forEach(m => m.remove());
+  markers = [];
+}
 
 
 // Base map
@@ -14,11 +30,16 @@ navigator.geolocation.getCurrentPosition(position => {
   map.setView(userLoc, 13);
 
 
-  L.marker(userLoc)
-    .addTo(map)
-    .bindPopup("📍 You are here")
-    .openPopup();
+   map.setCenter(userLoc);
+  map.setZoom(13);
+
+
+  new mapboxgl.Marker()
+    .setLngLat(userLoc)
+    .setPopup(new mapboxgl.Popup().setText("📍 You are here"))
+    .addTo(map);
 });
+
 
 
 // Clear markers
@@ -33,11 +54,15 @@ function clearMarkers() {
 
 // 🌿 Quiet spots (parks, cafes, libraries)
 
-document.getElementById("#quietBtn").addEventListener("click", () => {
+document.getElementById("quietBtn").addEventListener("click", () => {
   clearMarkers();
 
 
   let center = map.getCenter();
+let distance = getDistance(
+  [center.lng, center.lat],
+  [place.lon, place.lat]
+);
 
 
   // ✅ Restrict to NEW YORK STATE using area
@@ -70,22 +95,40 @@ document.getElementById("#quietBtn").addEventListener("click", () => {
 
 
       let type = getPlaceType(place);
-      let distance = map.distance(center, [place.lat, place.lon]);
+      let distance = function getDistance(coord1, coord2) {
+  const R = 6371000; // meters
+  const toRad = x => x * Math.PI / 180;
 
 
-      let score = calculateQuietScore(type, distance);
+  let dLat = toRad(coord2[1] - coord1[1]);
+  let dLon = toRad(coord2[0] - coord1[0]);
 
 
-      let marker = L.marker([place.lat, place.lon])
-        .bindPopup(`
-          🌿 ${type} <br>
-          Quiet Score: ${score.toFixed(2)}
-        `)
-        .addTo(map);
+  let a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+          Math.cos(toRad(coord1[1])) * Math.cos(toRad(coord2[1])) *
+          Math.sin(dLon/2) * Math.sin(dLon/2);
 
 
-      markers.push(marker);
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
 
+  let score = calculateQuietScore(type, distance);
+
+
+let marker = new mapboxgl.Marker()
+  .setLngLat([place.lon, place.lat])
+  .setPopup(
+    new mapboxgl.Popup().setHTML(`
+      🌿 ${type} <br>
+      Quiet Score: ${score.toFixed(2)}
+    `)
+  )
+  .addTo(map);
+
+
+markers.push(marker);
+
+  
 
       if (score > bestScore) {
         bestScore = score;
@@ -95,21 +138,26 @@ document.getElementById("#quietBtn").addEventListener("click", () => {
 
 
     // Highlight best
-    if (bestSpot) {
-      let bestMarker = L.marker([bestSpot.lat, bestSpot.lon], {
-        icon: L.icon({
-          iconUrl: "https://maps.google.com/mapfiles/ms/icons/green-dot.png",
-          iconSize: [32, 32]
-        })
-      })
-      .bindPopup("⭐ BEST QUIET SPOT")
-      .addTo(map);
+  if (bestSpot) {
+  let bestMarker = new mapboxgl.Marker({ color: "green" })
+    .setLngLat([bestSpot.lon, bestSpot.lat])
+    .setPopup(new mapboxgl.Popup().setText("⭐ BEST QUIET SPOT"))
+    .addTo(map);
 
 
-      markers.push(bestMarker);
+  markers.push(bestMarker);
+
     }
   });
 });
+
+
+function getPlaceType(place) {
+  if (place.tags?.leisure === "park") return "Park 🌿";
+  if (place.tags?.amenity === "library") return "Library 📚";
+  if (place.tags?.amenity === "cafe") return "Cafe ☕";
+  return "Place";
+}
 
 
 function getPlaceType(place) {
@@ -134,4 +182,6 @@ function calculateQuietScore(type, distance) {
 
   return baseScore + distanceScore;
 }
+
+
 
