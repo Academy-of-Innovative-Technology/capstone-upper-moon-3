@@ -1,41 +1,44 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Quiet Spot Finder</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-
-
-
-<link rel="stylesheet" href="src/css/style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiet Spot Finder</title>
+    
+    <!-- Google Maps API — replace YOUR_API_KEY with your actual key -->
+    <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&callback=initMap" async defer></script>
+    <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="src/css/style.css">
 </head>
-
 <body>
 
-<div class="bar">
-  <div class="menu">
-    <h2>🌍 Map Explorer</h2>
-  </div>
-</div>
+    <div class="bar">
+        <div class="menu">
+            <h2>🌍 Quiet Spot Finder</h2>
+            <div class="menu-links">
+                <a href="#">Home</a>
+                <a href="#">About</a>
+            </div>
+        </div>
+    </div>
 
-<div class="container">
-  <h2>Quiet Spot Finder</h2>
-  <p>Find peaceful places near you.</p>
+    <div class="wrapper">
+        <div class="sidebar">
+            <h1>Find Your Peace</h1>
+            <p>Discover quiet parks, libraries, and cafes near your current location. We rank them by peacefulness and proximity.</p>
+            
+            <button id="quietBtn" onclick="findQuietSpots()">🔍 Find Quiet Spots</button>
+            
+            <div id="statusBox" class="status"></div>
+            
+            <div id="spotList" class="spot-list"></div>
+        </div>
 
-  <button id="quietBtn">Find Quiet Spots</button>
-
-  <div id="map"></div>
-</div>
-
-
-
-
-
-
- <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
-
-  <script src="js/script.js"></script>
-
+        <div class="map-wrap">
+            <div id="map"></div>
+        </div>
+    </div>
+    <script defer src="src/js/script.js"></script>
 </body>
 </html>
+
