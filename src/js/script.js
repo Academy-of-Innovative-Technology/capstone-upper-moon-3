@@ -6,7 +6,7 @@ let markers = [];
 let userLocation = null;
 const DEFAULT_LOC = { lat: 40.7128, lng: -74.0060 }; // NYC fallback
 
-// Initialize Google Map
+// Initialize Map
  const map = new mapboxgl.Map({
         container: 'map', // container ID
         center: [-71.06776, 42.35816], // starting position [lng, lat]. Note that lat must be set between -90 and 90
