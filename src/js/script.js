@@ -1,51 +1,17 @@
 mapboxgl.accessToken = config.MAPBOX_API;
 
 
-let map;
+
 let markers = [];
 let userLocation = null;
 const DEFAULT_LOC = { lat: 40.7128, lng: -74.0060 }; // NYC fallback
 
 // Initialize Google Map
-let google;
-function initMap() {
-
-
-    map = new google.maps.Map(document.getElementById("map"), {
-        zoom: 13,
-        center: DEFAULT_LOC,
-        mapTypeId: "roadmap",
-        mapTypeControl: false,
-        streetViewControl: false,
-        fullscreenControl: true,
+ const map = new mapboxgl.Map({
+        container: 'map', // container ID
+        center: [-71.06776, 42.35816], // starting position [lng, lat]. Note that lat must be set between -90 and 90
+        zoom: 9 // starting zoom
     });
-
-    
-    // Try to get user's real location
-    if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-            (pos) => {
-                userLocation = {
-                    lat: pos.coords.latitude,
-                    lng: pos.coords.longitude
-                };
-                map.setCenter(userLocation);
-                addMarker(userLocation, "📍 You are here", "http://maps.google.com/mapfiles/ms/icons/blue-dot.png");
-                showStatus("Location found! Click 'Find Quiet Spots' to search.", "success");
-            },
-            (err) => {
-                console.warn("Geolocation denied/failed:", err);
-                userLocation = DEFAULT_LOC;
-                map.setCenter(DEFAULT_LOC);
-                showStatus("Could not access your location. Using New York City as default.", "warning");
-            }
-        );
-    } else {
-        userLocation = DEFAULT_LOC;
-        showStatus("Geolocation not supported. Using default location.", "warning");
-    }
-        
-}
 
 // Haversine distance in meters
 function getDistance(coord1, coord2) {
