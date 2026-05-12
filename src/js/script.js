@@ -7,6 +7,7 @@ let userLocation = null;
 const DEFAULT_LOC = { lat: 40.7128, lng: -74.0060 }; // NYC fallback
 
 // Initialize Google Map
+let google;
 function initMap() {
 
 
