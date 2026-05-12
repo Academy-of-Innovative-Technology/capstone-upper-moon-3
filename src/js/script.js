@@ -205,6 +205,3 @@ async function findQuietSpots() {
         btn.textContent = "🔍 Find Quiet Spots";
     }
 }
-
-
-initMap();
