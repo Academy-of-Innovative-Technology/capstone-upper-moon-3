@@ -54,13 +54,13 @@ function addMarker(position, title, iconUrl = null) {
         position: position,
         map: map,
         title: title,
-        animation: google.maps.Animation.DROP
+        animation: mapboxgl.maps.Animation.DROP
     };
     if (iconUrl) opts.icon = iconUrl;
 
-    const marker = new google.maps.Marker(opts);
+    const marker = new mapboxgl.maps.Marker(opts);
     
-    const info = new google.maps.InfoWindow({
+    const info = new mapboxgl.maps.InfoWindow({
         content: `<div style="color:#0a0c1a;font-family:sans-serif;padding:4px;"><b>${title}</b></div>`
     });
     
