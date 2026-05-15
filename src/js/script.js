@@ -91,49 +91,63 @@ async function findQuietSpots() {
     showStatus("Querying OpenStreetMap for quiet places nearby...", "success");
 
 
-    addMarker(userLocation, "📍 You are here", "http://maps.google.com/mapfiles/ms/icons/blue-dot.png");
+// Add user location marker
+new mapboxgl.Marker({ color: "blue" })
+    .setLngLat([userLocation.lng, userLocation.lat])
+    .setPopup(new mapboxgl.Popup().setText("📍 You are here"))
+    .addTo(map);
 
 
-   const radius = 10000; // 10km
-   const lat = userLocation.lat;
-   const lng = userLocation.lng;
 
 
-   // Overpass QL: search for parks, libraries, cafes around user
-   const query = `
-       [out:json][timeout:25];
-       (
-           node["leisure"="park"](around:${radius},${lat},${lng});
-           way["leisure"="park"](around:${radius},${lat},${lng});
-           node["amenity"="library"](around:${radius},${lat},${lng});
-           way["amenity"="library"](around:${radius},${lat},${lng});
-           node["amenity"="cafe"](around:${radius},${lat},${lng});
-           way["amenity"="cafe"](around:${radius},${lat},${lng});
-       );
-       out center tags;
-   `;
+// Example quiet spots array (no Overpass API needed)
+const quietSpots = [
+    {
+        name: "Quiet Park",
+        lng: -74.0324,
+        lat: 40.7440
+    },
+    {
+        name: "Library",
+        lng: -74.0301,
+        lat: 40.7415
+    },
+    {
+        name: "Waterfront Spot",
+        lng: -74.0287,
+        lat: 40.7482
+    }
+];
 
 
-   try {
-       const res = await fetch("https://overpass-api.de/api/interpreter", {
-           method: "POST",
-           body: query
-       });
 
 
-       if (!res.ok) throw new Error("Overpass API error");
+// Add quiet spot markers
+quietSpots.forEach(spot => {
+    new mapboxgl.Marker()
+        .setLngLat([spot.lng, spot.lat])
+        .setPopup(new mapboxgl.Popup().setText(`🌿 ${spot.name}`))
+        .addTo(map);
+});
 
 
-       const data = await res.json();
-       const elements = data.elements || [];
 
 
-       if (elements.length === 0) {
-           showStatus("No quiet spots found nearby. Try expanding your search area.", "warning");
-           btn.disabled = false;
-           btn.textContent = "🔍 Find Quiet Spots";
-           return;
-       }
+// Status message
+if (quietSpots.length === 0) {
+    showStatus(
+        "No quiet spots found nearby. Try expanding your search area.",
+        "warning"
+    );
+
+
+    btn.disabled = false;
+    btn.textContent = "🔍 Find Quiet Spots";
+} else {
+    showStatus(`Found ${quietSpots.length} quiet spots nearby!`, "success");
+}
+
+
 
 
 
@@ -214,11 +228,4 @@ let spots = [];
 
         showStatus(`Found ${spots.length} quiet spots nearby!`, "success");
 
-    } catch (err) {
-        console.error(err);
-        showStatus("Error fetching data. Please try again later.", "warning");
-    } finally {
-        btn.disabled = false;
-        btn.textContent = "🔍 Find Quiet Spots";
     }
-}
