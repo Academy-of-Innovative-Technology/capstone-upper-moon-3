@@ -1,15 +1,14 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quiet Spot Finder</title>
-    
-    <!-- Google Maps API — replace YOUR_API_KEY with your actual key -->
-    <link href="https://api.mapbox.com/mapbox-gl-js/v3.23.1/mapbox-gl.css" rel="stylesheet">
-<script src="https://api.mapbox.com/mapbox-gl-js/v3.23.1/mapbox-gl.js"></script>
+    <link href="https://api.mapbox.com/mapbox-gl-js/v3.24.0/mapbox-gl.css" rel="stylesheet">
+    <script src="https://api.mapbox.com/mapbox-gl-js/v3.24.0/mapbox-gl.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="src/css/style.css">
+<link rel="stylesheet" href="src/css/style.css">
 </head>
 <body>
 
@@ -28,19 +27,25 @@
             <h1>Find Your Peace</h1>
             <p>Discover quiet parks, libraries, and cafes near your current location. We rank them by peacefulness and proximity.</p>
             
-            <button id="quietBtn" onclick="findQuietSpots()">🔍 Find Quiet Spots</button>
+            <button id="quietBtn">🔍 Find Quiet Spots</button>
             
             <div id="statusBox" class="status"></div>
             
             <div id="spotList" class="spot-list"></div>
         </div>
 
-        <div class="map-wrap">
-            <div id="map"></div>
+        <div class="map-wrap" id="map-wrapper-outer">
+            <div id="map-wrapper-inner">
+                <div id="btn-container">
+                    <button id="narrow" class="btn-control">Narrow</button>
+                    <button id="full" class="btn-control active">Full</button>
+                    <button id="wide" class="btn-control">Wide</button>
+                </div>
+                <div id="map"></div>
+            </div>
         </div>
     </div>
-    <script src="env.js"></script>
-    <script defer src="src/js/script.js"></script>
+
+    <script src="src/js/script.js"></script>
 </body>
 </html>
-
