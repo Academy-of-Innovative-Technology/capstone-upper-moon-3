@@ -11,7 +11,7 @@ let userLocation = null;
 
 function initializeMap() {
     map = new mapboxgl.Map({
-        accessToken: config.MAPBOX_ACCESS_TOKEN,
+        accessToken: config.MAPBOX_API,
         container: 'map',
         style: 'mapbox://styles/mapbox/standard',
         center: [DEFAULT_LOC.lng, DEFAULT_LOC.lat],
