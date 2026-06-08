@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiet Spot Finder — Login</title>
+    <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="src/css/style.css">
+</head>
+<body class="login-body">
+    <!-- Navigation -->
+    <nav class="bar">
+        <div class="menu">
+            <a href="index.html" class="logo">🌍 Quiet Spot Finder</a>
+            <button class="mobile-toggle" id="mobileToggle" aria-label="Menu">☰</button>
+            <div class="menu-links" id="menuLinks">
+                <a href="index.html">Home</a>
+                <a href="map.html">Map</a>
+                <a href="login.html" class="active">Login</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="login-main">
+        <div class="login-card">
+            <div class="login-header">
+                <div class="login-icon">🔐</div>
+                <h1>Welcome Back</h1>
+                <p>Sign in to save your favorite spots across sessions.</p>
+            </div>
+
+            <form id="loginForm" class="login-form">
+                <div class="form-group">
+                    <label for="loginUsername">Username</label>
+                    <input type="text" id="loginUsername" placeholder="Enter your username" required autocomplete="username">
+                </div>
+                <div class="form-group">
+                    <label for="loginPassword">Password</label>
+                    <input type="password" id="loginPassword" placeholder="Enter your password" required autocomplete="current-password">
+                </div>
+                <button type="submit" class="btn-primary btn-full">Sign In</button>
+            </form>
+
+            <div class="login-divider">
+                <span>or</span>
+            </div>
+
+            <form id="registerForm" class="login-form hidden">
+                <div class="form-group">
+                    <label for="regUsername">Choose Username</label>
+                    <input type="text" id="regUsername" placeholder="Pick a username" required autocomplete="username">
+                </div>
+                <div class="form-group">
+                    <label for="regPassword">Create Password</label>
+                    <input type="password" id="regPassword" placeholder="Min 4 characters" required minlength="4" autocomplete="new-password">
+                </div>
+                <div class="form-group">
+                    <label for="regConfirm">Confirm Password</label>
+                    <input type="password" id="regConfirm" placeholder="Re-enter password" required autocomplete="new-password">
+                </div>
+                <button type="submit" class="btn-primary btn-full">Create Account</button>
+            </form>
+
+            <div class="login-toggle" id="loginToggle">
+                <p>Don't have an account? <button type="button" class="link-btn" id="showRegister">Register</button></p>
+            </div>
+            <div class="login-toggle hidden" id="registerToggle">
+                <p>Already have an account? <button type="button" class="link-btn" id="showLogin">Sign In</button></p>
+            </div>
+        </div>
+    </main>
+
+    <!-- Toast Container -->
+    <div id="toastContainer" class="toast-container"></div>
+
+        <script src="env.js"></script>
+    <script src="src/js/script.js"></script>
+    <script src="src/js/map.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            App.init();
+            App.initLoginPage();
+        });
+    </script>
+</body>
+</html>
+

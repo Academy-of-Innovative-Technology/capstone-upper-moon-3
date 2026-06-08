@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiet Spot Finder — Map</title>
+    <link href="https://api.mapbox.com/mapbox-gl-js/v3.24.0/mapbox-gl.css" rel="stylesheet">
+    <script src="https://api.mapbox.com/mapbox-gl-js/v3.24.0/mapbox-gl.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/src/css/style.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="bar">
+        <div class="menu">
+            <a href="index.html" class="logo">🌍 Quiet Spot Finder</a>
+            <button class="mobile-toggle" id="mobileToggle" aria-label="Menu">☰</button>
+            <div class="menu-links" id="menuLinks">
+                <a href="index.html">Home</a>
+                <a href="map.html" class="active">Map</a>
+                <a href="login.html" id="loginNavLink">Login</a>
+                <div class="user-chip hidden" id="userChip">
+                    <span id="userName">User</span>
+                    <button id="logoutBtn" class="btn-small">Logout</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="wrapper map-page-wrapper">
+        <!-- Sidebar -->
+        <div class="sidebar" id="mapSidebar">
+            <div class="sidebar-tabs">
+                <button class="tab-btn active" data-tab="search">🔍 Search</button>
+                <button class="tab-btn" data-tab="saved">⭐ Saved</button>
+            </div>
+
+            <!-- Search Tab -->
+            <div class="tab-panel active" id="tab-search">
+                <h1>Find Your Peace</h1>
+                <p>Discover quiet parks, libraries, and cafes near your current location. We rank them by peacefulness and proximity.</p>
+
+                <div class="mode-toggle">
+                    <button class="mode-btn active" data-mode="libraries">📚 Libraries</button>
+                    <button class="mode-btn" data-mode="quiet">🌿 Quiet Spots</button>
+                </div>
+
+                <div class="search-box">
+                    <input type="text" id="searchInput" placeholder="Search library name..." autocomplete="off">
+                    <button id="searchBtn" class="btn-icon">🔍</button>
+                </div>
+
+                <div class="borough-filter" id="boroughFilter">
+                    <label class="filter-label">Filter by Borough:</label>
+                    <div class="filter-chips">
+                        <button class="chip active" data-borough="all">All</button>
+                        <button class="chip" data-borough="1">Manhattan</button>
+                        <button class="chip" data-borough="2">Bronx</button>
+                        <button class="chip" data-borough="3">Brooklyn</button>
+                        <button class="chip" data-borough="4">Queens</button>
+                        <button class="chip" data-borough="5">Staten Island</button>
+                    </div>
+                </div>
+
+                <button id="quietBtn" class="btn-action">🔍 Find Quiet Spots</button>
+                <button id="locateBtn" class="btn-secondary btn-small">📍 Use My Location</button>
+
+                <div id="statusBox" class="status"></div>
+                <div id="spotList" class="spot-list"></div>
+            </div>
+
+            <!-- Saved Tab -->
+            <div class="tab-panel" id="tab-saved">
+                <h2>⭐ My Saved Spots</h2>
+                <p>Click any spot on the map to save it here.</p>
+                <div class="saved-list" id="savedList">
+                    <div class="empty-state">
+                        <div class="empty-icon">📌</div>
+                        <p>No saved spots yet. Click any marker and hit "Save" to add it.</p>
+                    </div>
+                </div>
+                <a href="index.html#saved-spots" class="btn-secondary btn-small">View on Homepage →</a>
+            </div>
+        </div>
+
+        <!-- Map Area -->
+        <div class="map-wrap" id="map-wrapper-outer">
+            <div id="map-wrapper-inner">
+                <div id="btn-container">
+                    <button id="narrow" class="btn-control">Narrow</button>
+                    <button id="full" class="btn-control active">Full</button>
+                    <button id="wide" class="btn-control">Wide</button>
+                </div>
+                <div id="map"></div>
+                <div class="map-hint" id="mapHint">💡 Click anywhere on the map to drop a custom pin</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Save Spot Modal -->
+    <div class="modal-overlay hidden" id="saveModal">
+        <div class="modal">
+            <h3>📌 Save This Spot</h3>
+            <p id="saveModalCoords"></p>
+            <input type="text" id="saveSpotName" placeholder="Name this spot (e.g. My Favorite Bench)" maxlength="50">
+            <div class="modal-actions">
+                <button class="btn-secondary" id="cancelSave">Cancel</button>
+                <button class="btn-primary" id="confirmSave">Save Spot</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Library Detail Modal -->
+    <div class="modal-overlay hidden" id="detailModal">
+        <div class="modal modal-large">
+            <button class="modal-close" id="closeDetail">×</button>
+            <div id="detailContent"></div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <script src="env.js"></script>
+    <script src="src/js/script.js"></script>
+    <script src="src/js/map.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            App.init();
+            MapApp.init();
+        });
+    </script>
+</body>
+</html>
+

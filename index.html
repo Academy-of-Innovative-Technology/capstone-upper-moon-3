@@ -1,0 +1,160 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiet Spot Finder — Home</title>
+    <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="src/css/style.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="bar">
+        <div class="menu">
+            <a href="index.html" class="logo">🌍 Quiet Spot Finder</a>
+            <button class="mobile-toggle" id="mobileToggle" aria-label="Menu">☰</button>
+            <div class="menu-links" id="menuLinks">
+                <a href="index.html" class="active">Home</a>
+                <a href="map.html">Map</a>
+                <a href="login.html" id="loginNavLink">Login</a>
+                <div class="user-chip hidden" id="userChip">
+                    <span id="userName">User</span>
+                    <button id="logoutBtn" class="btn-small">Logout</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <h1>Find Your Peace in the City</h1>
+            <p>Discover quiet libraries, parks, and hidden gems across all five boroughs of New York. Save your favorites and build your personal sanctuary map.</p>
+            <div class="hero-buttons">
+                <a href="map.html" class="btn-primary">🗺️ Explore the Map</a>
+                <a href="#saved-spots" class="btn-secondary">⭐ My Saved Spots</a>
+            </div>
+        </div>
+        <div class="hero-stats">
+            <div class="stat">
+                <span class="stat-num" data-target="216">0</span>
+                <span class="stat-label">Libraries</span>
+            </div>
+            <div class="stat">
+                <span class="stat-num" data-target="5">0</span>
+                <span class="stat-label">Boroughs</span>
+            </div>
+            <div class="stat">
+                <span class="stat-num" data-target="3">0</span>
+                <span class="stat-label">Systems</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- My Saved Spots (Connected to Map) -->
+    <section class="section" id="saved-spots">
+        <div class="container">
+            <div class="section-header">
+                <h2>⭐ My Saved Spots</h2>
+                <p>Places you've bookmarked from the map appear here. <a href="map.html">Go to map to add more →</a></p>
+            </div>
+            <div class="saved-spots-grid" id="savedSpotsGrid">
+                <div class="empty-state" id="savedEmptyState">
+                    <div class="empty-icon">📌</div>
+                    <h3>No saved spots yet</h3>
+                    <p>Click any spot on the map and hit "Save" to add it here.</p>
+                    <a href="map.html" class="btn-primary">Open Map</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Borough Explorer -->
+    <section class="section section-alt">
+        <div class="container">
+            <div class="section-header">
+                <h2>🏙️ Explore by Borough</h2>
+                <p>Jump to a borough on the map to see its libraries.</p>
+            </div>
+            <div class="borough-grid">
+                <a href="map.html?borough=1" class="borough-card manhattan">
+                    <div class="borough-icon">🏙️</div>
+                    <h3>Manhattan</h3>
+                    <p>NYPL branches from Battery Park to Inwood</p>
+                    <span class="borough-count" data-borough="1">0 libraries</span>
+                </a>
+                <a href="map.html?borough=2" class="borough-card bronx">
+                    <div class="borough-icon">🌳</div>
+                    <h3>The Bronx</h3>
+                    <p>From Riverdale to Throg's Neck</p>
+                    <span class="borough-count" data-borough="2">0 libraries</span>
+                </a>
+                <a href="map.html?borough=3" class="borough-card brooklyn">
+                    <div class="borough-icon">🌉</div>
+                    <h3>Brooklyn</h3>
+                    <p>BPL branches across the borough</p>
+                    <span class="borough-count" data-borough="3">0 libraries</span>
+                </a>
+                <a href="map.html?borough=4" class="borough-card queens">
+                    <div class="borough-icon">✈️</div>
+                    <h3>Queens</h3>
+                    <p>QPL — the most diverse system</p>
+                    <span class="borough-count" data-borough="4">0 libraries</span>
+                </a>
+                <a href="map.html?borough=5" class="borough-card staten">
+                    <div class="borough-icon">⛴️</div>
+                    <h3>Staten Island</h3>
+                    <p>From St. George to Tottenville</p>
+                    <span class="borough-count" data-borough="5">0 libraries</span>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Featured Libraries -->
+    <section class="section">
+        <div class="container">
+            <div class="section-header">
+                <h2>📚 Featured Libraries</h2>
+                <p>Notable branches from the collection.</p>
+            </div>
+            <div class="library-grid" id="featuredGrid"></div>
+        </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="section cta-section">
+        <div class="container">
+            <h2>Ready to find your quiet spot?</h2>
+            <p>Use our interactive map to discover peaceful places near you, save your favorites, and plan your next escape from the noise.</p>
+            <a href="map.html" class="btn-primary btn-large">Launch the Map →</a>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>🌍 Quiet Spot Finder • Built with Mapbox & OpenStreetMap</p>
+            <p class="footer-small">Data sourced from NYC Open Data • Library information from NYPL, BPL, and QPL</p>
+        </div>
+    </footer>
+
+    <!-- Toast Container -->
+    <div id="toastContainer" class="toast-container"></div>
+
+        <script src="env.js"></script>
+    <script src="src/js/script.js"></script>
+    <script src="src/js/map.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            App.init();
+            App.renderSavedSpotsHome();
+            App.renderFeaturedLibraries();
+            App.countBoroughs();
+            App.animateStats();
+        });
+    </script>
+</body>
+</html>
+
