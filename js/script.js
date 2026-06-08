@@ -1,295 +1,329 @@
-const DEFAULT_BOUNDS = [
-    [-74.2709, 40.48972],
-    [-73.7042, 40.93288]
-];
-const DEFAULT_LOC = { lat: 40.7128, lng: -74.0060 };
+/* ============================================
+   QUIET SPOT FINDER — SHARED APP LOGIC
+   ============================================ */
 
-let map;
-let markers = [];
-let userMarker = null;
-let userLocation = null;
+const App = {
+    currentUser: null,
 
-function initializeMap() {
-    map = new mapboxgl.Map({
-        accessToken: config.MAPBOX_API,
-        container: 'map',
-        style: 'mapbox://styles/mapbox/standard',
-        center: [DEFAULT_LOC.lng, DEFAULT_LOC.lat],
-        zoom: 13
-    });
+    init() {
+        this.loadUser();
+        this.setupNav();
+        this.setupMobileMenu();
+    },
 
-    map.on('load', () => {
-        map.addSource('bounds', {
-            type: 'geojson',
-            data: {
-                type: 'Feature',
-                properties: {},
-                geometry: {
-                    type: 'Polygon',
-                    coordinates: [[
-                        [DEFAULT_BOUNDS[0][0], DEFAULT_BOUNDS[0][1]],
-                        [DEFAULT_BOUNDS[0][0], DEFAULT_BOUNDS[1][1]],
-                        [DEFAULT_BOUNDS[1][0], DEFAULT_BOUNDS[1][1]],
-                        [DEFAULT_BOUNDS[1][0], DEFAULT_BOUNDS[0][1]],
-                        [DEFAULT_BOUNDS[0][0], DEFAULT_BOUNDS[0][1]]
-                    ]]
-                }
+    loadUser() {
+        const stored = localStorage.getItem('quietSpotUser');
+        if (stored) {
+            try {
+                this.currentUser = JSON.parse(stored);
+                this.updateNavUser();
+            } catch (e) {
+                localStorage.removeItem('quietSpotUser');
             }
-        });
-
-        map.addLayer({
-            id: 'line-bounding-box',
-            type: 'line',
-            source: 'bounds',
-            paint: {
-                'line-color': '#3386c0',
-                'line-width': 3,
-                'line-opacity': 0.9
-            }
-        });
-
-        tryGeolocation();
-    });
-}
-
-function tryGeolocation() {
-    if (!navigator.geolocation) {
-        userLocation = DEFAULT_LOC;
-        showStatus('Geolocation not supported. Using default location.', 'warning');
-        return;
-    }
-
-    navigator.geolocation.getCurrentPosition(
-        (pos) => {
-            userLocation = {
-                lat: pos.coords.latitude,
-                lng: pos.coords.longitude
-            };
-            map.flyTo({ center: [userLocation.lng, userLocation.lat], zoom: 13 });
-            addUserMarker(userLocation);
-            showStatus("Location found! Click 'Find Quiet Spots' to search.", 'success');
-        },
-        (err) => {
-            console.warn('Geolocation denied/failed:', err);
-            userLocation = DEFAULT_LOC;
-            showStatus('Could not access your location. Using default.', 'warning');
         }
-    );
-}
+    },
 
-function addUserMarker(position) {
-    if (userMarker) userMarker.remove();
+    saveUser(user) {
+        this.currentUser = user;
+        localStorage.setItem('quietSpotUser', JSON.stringify(user));
+        this.updateNavUser();
+    },
 
-    const el = document.createElement('div');
-    el.innerHTML = '📍';
-    el.style.fontSize = '24px';
-    el.style.cursor = 'pointer';
+    logout() {
+        this.currentUser = null;
+        localStorage.removeItem('quietSpotUser');
+        this.updateNavUser();
+        this.showToast('Logged out successfully', 'info');
+        setTimeout(() => {
+            if (window.location.pathname.includes('login')) {
+                window.location.reload();
+            }
+        }, 800);
+    },
 
-    userMarker = new mapboxgl.Marker({ element: el })
-        .setLngLat([position.lng, position.lat])
-        .setPopup(new mapboxgl.Popup().setHTML('<b>You are here</b>'))
-        .addTo(map);
-}
+    updateNavUser() {
+        const loginLink = document.getElementById('loginNavLink');
+        const userChip = document.getElementById('userChip');
+        const userName = document.getElementById('userName');
+        const logoutBtn = document.getElementById('logoutBtn');
 
-function getDistance(coord1, coord2) {
-    const R = 6371000;
-    const toRad = x => x * Math.PI / 180;
-    const dLat = toRad(coord2.lat - coord1.lat);
-    const dLon = toRad(coord2.lng - coord1.lng);
-    const a = Math.sin(dLat / 2) ** 2 +
-              Math.cos(toRad(coord1.lat)) * Math.cos(toRad(coord2.lat)) *
-              Math.sin(dLon / 2) ** 2;
-    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-}
+        if (!loginLink || !userChip) return;
 
-function getPlaceType(tags) {
-    if (tags.leisure === 'park') return 'Park 🌿';
-    if (tags.amenity === 'library') return 'Library 📚';
-    if (tags.amenity === 'cafe') return 'Cafe ☕';
-    return 'Place';
-}
+        if (this.currentUser) {
+            loginLink.classList.add('hidden');
+            userChip.classList.remove('hidden');
+            userName.textContent = this.currentUser.username;
+            if (logoutBtn) {
+                logoutBtn.onclick = () => this.logout();
+            }
+        } else {
+            loginLink.classList.remove('hidden');
+            userChip.classList.add('hidden');
+        }
+    },
 
-function calculateQuietScore(type, distance) {
-    let base = 0;
-    if (type.includes('Library')) base = 4;
-    else if (type.includes('Park')) base = 3;
-    else if (type.includes('Cafe')) base = 2;
+    setupNav() {
+        const logoutBtn = document.getElementById('logoutBtn');
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', () => this.logout());
+        }
+    },
 
-    const distBonus = Math.max(0, 5000 - distance) / 2500;
-    return base + distBonus;
-}
+    setupMobileMenu() {
+        const toggle = document.getElementById('mobileToggle');
+        const links = document.getElementById('menuLinks');
+        if (toggle && links) {
+            toggle.addEventListener('click', () => {
+                links.classList.toggle('open');
+                toggle.textContent = links.classList.contains('open') ? '✕' : '☰';
+            });
+        }
+    },
 
-function clearMarkers() {
-    markers.forEach(m => m.remove());
-    markers = [];
-    if (userMarker) { userMarker.remove(); userMarker = null; }
-    document.getElementById('spotList').innerHTML = '';
-}
+    initLoginPage() {
+        const loginForm = document.getElementById('loginForm');
+        const registerForm = document.getElementById('registerForm');
+        const showRegister = document.getElementById('showRegister');
+        const showLogin = document.getElementById('showLogin');
+        const loginToggle = document.getElementById('loginToggle');
+        const registerToggle = document.getElementById('registerToggle');
 
-function addMarker(position, title, color = '#3386c0') {
-    const popup = new mapboxgl.Popup({ offset: 25 }).setHTML(
-        `<div style="color:#0a0c1a;font-family:sans-serif;padding:4px;"><b>${title}</b></div>`
-    );
+        if (showRegister) {
+            showRegister.addEventListener('click', () => {
+                loginForm.classList.add('hidden');
+                loginToggle.classList.add('hidden');
+                registerForm.classList.remove('hidden');
+                registerToggle.classList.remove('hidden');
+            });
+        }
 
-    const marker = new mapboxgl.Marker({ color })
-        .setLngLat([position.lng, position.lat])
-        .setPopup(popup)
-        .addTo(map);
+        if (showLogin) {
+            showLogin.addEventListener('click', () => {
+                registerForm.classList.add('hidden');
+                registerToggle.classList.add('hidden');
+                loginForm.classList.remove('hidden');
+                loginToggle.classList.remove('hidden');
+            });
+        }
 
-    markers.push(marker);
-    return marker;
-}
+        if (loginForm) {
+            loginForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const username = document.getElementById('loginUsername').value.trim();
+                const password = document.getElementById('loginPassword').value;
 
-function showStatus(msg, type) {
-    const box = document.getElementById('statusBox');
-    box.textContent = msg;
-    box.className = 'status visible';
-    box.style.background = type === 'warning' ? 'rgba(255,193,7,0.2)' : 'rgba(255,255,255,0.1)';
-    box.style.color = type === 'warning' ? '#ffd54f' : '#fff';
-}
+                const users = JSON.parse(localStorage.getItem('quietSpotUsers') || '{}');
+                if (users[username] && users[username].password === password) {
+                    this.saveUser({ username });
+                    this.showToast('Welcome back, ' + username + '!', 'success');
+                    setTimeout(() => window.location.href = 'index.html', 1000);
+                } else {
+                    this.showToast('Invalid username or password', 'error');
+                }
+            });
+        }
 
-async function findQuietSpots() {
-    if (!userLocation) {
-        showStatus('Waiting for location...', 'warning');
-        return;
-    }
+        if (registerForm) {
+            registerForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const username = document.getElementById('regUsername').value.trim();
+                const password = document.getElementById('regPassword').value;
+                const confirm = document.getElementById('regConfirm').value;
 
-    const btn = document.getElementById('quietBtn');
-    btn.disabled = true;
-    btn.textContent = 'Searching...';
-    clearMarkers();
-    addUserMarker(userLocation);
-    showStatus('Querying OpenStreetMap for quiet places nearby...', 'success');
+                if (!username || !password) {
+                    this.showToast('Please fill in all fields', 'warning');
+                    return;
+                }
+                if (password !== confirm) {
+                    this.showToast('Passwords do not match', 'error');
+                    return;
+                }
+                if (password.length < 4) {
+                    this.showToast('Password must be at least 4 characters', 'warning');
+                    return;
+                }
 
-    const radius = 10000;
-    const lat = userLocation.lat;
-    const lng = userLocation.lng;
+                const users = JSON.parse(localStorage.getItem('quietSpotUsers') || '{}');
+                if (users[username]) {
+                    this.showToast('Username already taken', 'error');
+                    return;
+                }
 
-    const query = `
-        [out:json][timeout:25];
-        (
-          node["leisure"="park"](around:${radius},${lat},${lng});
-          way["leisure"="park"](around:${radius},${lat},${lng});
-          node["amenity"="library"](around:${radius},${lat},${lng});
-          way["amenity"="library"](around:${radius},${lat},${lng});
-          node["amenity"="cafe"](around:${radius},${lat},${lng});
-          way["amenity"="cafe"](around:${radius},${lat},${lng});
-        );
-        out center tags;
-    `;
+                users[username] = { password, created: Date.now() };
+                localStorage.setItem('quietSpotUsers', JSON.stringify(users));
+                this.saveUser({ username });
+                this.showToast('Account created! Welcome, ' + username, 'success');
+                setTimeout(() => window.location.href = 'index.html', 1000);
+            });
+        }
+    },
 
-    try {
-        const res = await fetch('https://overpass-api.de/api/interpreter', {
-            method: 'POST',
-            body: query
+    getSavedSpots() {
+        const key = this.currentUser
+            ? 'savedSpots_' + this.currentUser.username
+            : 'savedSpots_guest';
+        return JSON.parse(localStorage.getItem(key) || '[]');
+    },
+
+    saveSpot(spot) {
+        const key = this.currentUser
+            ? 'savedSpots_' + this.currentUser.username
+            : 'savedSpots_guest';
+        const spots = this.getSavedSpots();
+        const exists = spots.some(s => s.id === spot.id);
+        if (exists) {
+            this.showToast('This spot is already saved!', 'warning');
+            return false;
+        }
+        spots.push({ ...spot, savedAt: Date.now() });
+        localStorage.setItem(key, JSON.stringify(spots));
+        this.showToast('Spot saved! Check the homepage or Saved tab.', 'success');
+        this.emit('spotsChanged');
+        return true;
+    },
+
+    removeSpot(id) {
+        const key = this.currentUser
+            ? 'savedSpots_' + this.currentUser.username
+            : 'savedSpots_guest';
+        const spots = this.getSavedSpots().filter(s => s.id !== id);
+        localStorage.setItem(key, JSON.stringify(spots));
+        this.showToast('Spot removed', 'info');
+        this.emit('spotsChanged');
+    },
+
+    _events: {},
+    on(event, fn) {
+        (this._events[event] = this._events[event] || []).push(fn);
+    },
+    emit(event, data) {
+        (this._events[event] || []).forEach(fn => fn(data));
+    },
+
+    showToast(message, type = 'info') {
+        const container = document.getElementById('toastContainer');
+        if (!container) return;
+        const toast = document.createElement('div');
+        toast.className = 'toast ' + type;
+        const icons = { success: '✅', warning: '⚠️', error: '❌', info: 'ℹ️' };
+        toast.innerHTML = '<span>' + (icons[type] || '') + '</span><span>' + message + '</span>';
+        container.appendChild(toast);
+        setTimeout(() => toast.remove(), 4000);
+    },
+
+    renderSavedSpotsHome() {
+        const grid = document.getElementById('savedSpotsGrid');
+        const empty = document.getElementById('savedEmptyState');
+        if (!grid) return;
+
+        const spots = this.getSavedSpots();
+
+        Array.from(grid.children).forEach(child => {
+            if (child.id !== 'savedEmptyState') child.remove();
         });
 
-        if (!res.ok) throw new Error('Overpass API error');
-
-        const data = await res.json();
-        const elements = data.elements || [];
-
-        if (elements.length === 0) {
-            showStatus('No quiet spots found nearby. Try expanding your search area.', 'warning');
-            btn.disabled = false;
-            btn.textContent = '🔍 Find Quiet Spots';
+        if (spots.length === 0) {
+            empty.classList.remove('hidden');
             return;
         }
+        empty.classList.add('hidden');
 
-        let spots = [];
-
-        elements.forEach(el => {
-            let lat, lon;
-            if (el.type === 'node') {
-                lat = el.lat; lon = el.lon;
-            } else if (el.center) {
-                lat = el.center.lat; lon = el.center.lon;
-            } else {
-                return;
-            }
-
-            const type = getPlaceType(el.tags || {});
-            const pos = { lat: lat, lng: lon };
-            const dist = getDistance(userLocation, pos);
-            const score = calculateQuietScore(type, dist);
-            const name = el.tags?.name || 'Unnamed ' + type.split(' ')[0];
-
-            spots.push({ name, type, pos, dist, score, element: el });
-        });
-
-        spots.sort((a, b) => b.score - a.score);
-        spots = spots.slice(0, 15);
-
-        const listEl = document.getElementById('spotList');
-
-        spots.forEach((spot, index) => {
-            const isBest = index === 0;
-            const distKm = (spot.dist / 1000).toFixed(1);
-
-            const markerColor = isBest ? '#00c853' : '#aa00ff';
-            const marker = addMarker(spot.pos, `${spot.name} — ${spot.type}`, markerColor);
-
+        spots.slice(0, 6).forEach(spot => {
             const card = document.createElement('div');
-            card.className = 'spot-card' + (isBest ? ' best' : '');
+            card.className = 'saved-card';
+            const date = spot.savedAt ? new Date(spot.savedAt).toLocaleDateString() : '';
             card.innerHTML = `
-                <div class="score">${spot.score.toFixed(1)}</div>
-                <div class="name">${isBest ? '⭐ ' : ''}${spot.name}</div>
-                <div class="meta">${spot.type} • ${distKm} km away</div>
+                <h4>${this.escapeHtml(spot.name || 'Unnamed Spot')}</h4>
+                <p>${this.escapeHtml(spot.type || 'Location')} • ${spot.city || 'NYC'}</p>
+                <p style="font-size:12px;opacity:0.6;margin-top:4px;">${date}</p>
+                <div class="saved-actions">
+                    <a href="map.html?lat=${spot.lat}&lng=${spot.lng}&zoom=16" class="btn-secondary btn-small">View</a>
+                    <button class="btn-small" style="background:rgba(255,82,82,0.2);color:#ff5252;" onclick="App.removeSpot('${spot.id}'); App.renderSavedSpotsHome();">Remove</button>
+                </div>
             `;
-
-            card.addEventListener('click', () => {
-                map.flyTo({ center: [spot.pos.lng, spot.pos.lat], zoom: 16 });
-                marker.togglePopup();
-            });
-
-            listEl.appendChild(card);
+            grid.appendChild(card);
         });
+    },
 
-        if (spots.length > 0) {
-            const bounds = new mapboxgl.LngLatBounds();
-            bounds.extend([userLocation.lng, userLocation.lat]);
-            spots.forEach(s => bounds.extend([s.pos.lng, s.pos.lat]));
-            map.fitBounds(bounds, { padding: 60 });
-        }
+    renderFeaturedLibraries() {
+        const grid = document.getElementById('featuredGrid');
+        if (!grid) return;
 
-        showStatus(`Found ${spots.length} quiet spots nearby!`, 'success');
+        fetch('data/libraries.json')
+            .then(r => r.json())
+            .then(data => {
+                const featured = [
+                    data.find(l => l.name.includes('Schwarzman')),
+                    data.find(l => l.name.includes('Schomburg')),
+                    data.find(l => l.name.includes('Brooklyn Central')),
+                    data.find(l => l.name.includes('Queens Central')),
+                    data.find(l => l.name.includes('Bronx Library Center')),
+                    data.find(l => l.name.includes('St. George'))
+                ].filter(Boolean);
 
-    } catch (err) {
-        console.error(err);
-        showStatus('Error fetching data. Please try again later.', 'warning');
-    } finally {
-        btn.disabled = false;
-        btn.textContent = '🔍 Find Quiet Spots';
+                featured.forEach(lib => {
+                    const card = document.createElement('div');
+                    card.className = 'library-card';
+                    const systemColors = { NYPL: '#4ecdc4', BPL: '#ffe66d', QPL: '#a8e6cf' };
+                    const sysColor = systemColors[lib.system] || '#b698fb';
+                    const coords = lib.the_geom?.coordinates;
+                    const lat = coords ? coords[1] : '';
+                    const lng = coords ? coords[0] : '';
+                    card.innerHTML = `
+                        <span class="lib-system" style="background:${sysColor}33;color:${sysColor};">${lib.system}</span>
+                        <h3>${this.escapeHtml(lib.name)}</h3>
+                        <p class="lib-address">${this.escapeHtml(lib.housenum || '')} ${this.escapeHtml(lib.streetname || '')}, ${this.escapeHtml(lib.city || '')}</p>
+                        <div class="lib-actions">
+                            <a href="${lib.url}" target="_blank" class="btn-secondary btn-small">Website</a>
+                            <button class="btn-small btn-primary" onclick="App.saveSpot({id:'${lib.name}',name:'${lib.name.replace(/'/g, "\\'")}',type:'Library',city:'${lib.city}',lat:${lat},lng:${lng},system:'${lib.system}'}); App.renderSavedSpotsHome();">⭐ Save</button>
+                        </div>
+                    `;
+                    grid.appendChild(card);
+                });
+            })
+            .catch(err => console.error('Failed to load libraries:', err));
+    },
+
+    countBoroughs() {
+        fetch('data/libraries.json')
+            .then(r => r.json())
+            .then(data => {
+                const counts = {};
+                data.forEach(lib => {
+                    counts[lib.borocode] = (counts[lib.borocode] || 0) + 1;
+                });
+                document.querySelectorAll('.borough-count').forEach(el => {
+                    const bc = el.dataset.borough;
+                    if (counts[bc]) {
+                        el.textContent = counts[bc] + ' libraries';
+                    }
+                });
+            });
+    },
+
+    animateStats() {
+        const nums = document.querySelectorAll('.stat-num');
+        nums.forEach(num => {
+            const target = parseInt(num.dataset.target, 10);
+            let current = 0;
+            const step = Math.max(1, Math.floor(target / 40));
+            const timer = setInterval(() => {
+                current += step;
+                if (current >= target) {
+                    current = target;
+                    clearInterval(timer);
+                }
+                num.textContent = current;
+            }, 40);
+        });
+    },
+
+    escapeHtml(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
     }
-}
-
-const resizeMap = ({ height, width }) => {
-    const container = document.getElementById('map-wrapper-inner');
-    container.style.width = width;
-    container.style.height = height;
-    requestAnimationFrame(() => map.resize());
 };
 
-const setActiveButton = (id) => {
-    document.querySelector('.btn-control.active')?.classList.remove('active');
-    document.getElementById(id).classList.add('active');
-};
 
-document.getElementById('narrow').addEventListener('click', () => {
-    resizeMap({ width: '30%', height: '100%' });
-    setActiveButton('narrow');
-});
-
-document.getElementById('full').addEventListener('click', () => {
-    resizeMap({ width: '100%', height: '100%' });
-    setActiveButton('full');
-});
-
-document.getElementById('wide').addEventListener('click', () => {
-    resizeMap({ width: '100%', height: '50%' });
-    setActiveButton('wide');
-});
-
-document.getElementById('quietBtn').addEventListener('click', findQuietSpots);
-
-initializeMap();
